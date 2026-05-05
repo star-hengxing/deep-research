@@ -1,0 +1,25 @@
+[workspace]
+name = "deep-research"
+channels = ["conda-forge"]
+version = "0.2.0"
+platforms = ["win-64", "linux-64"]
+
+[dependencies]
+python = ">=3.11"
+pip = "*"
+pandoc = ">=3.9.0.2,<4"
+typst = ">=0.14.2,<0.15"
+markdownlint-cli = ">=0.48,<1"
+prettier = "*"
+
+[pypi-dependencies]
+deep-research = { path = "..", editable = true }
+typer = ">=0.12,<1"
+rich = ">=13,<14"
+
+[tasks]
+fix-md = "prettier --write --ignore-path ../.gitignore \"../docs/**/*.md\""
+
+[tasks.lint-md]
+depends-on = ["fix-md"]
+cmd = "markdownlint --config ../.markdownlint.json ../docs/"

@@ -1,0 +1,39 @@
+// --- Font: use system CJK fonts ---
+#set text(font: ("Microsoft YaHei",), weight: "regular", size: 10.5pt)
+#show heading: set text(font: ("Microsoft YaHei",), weight: "bold")
+#show strong: set text(font: ("Microsoft YaHei",), weight: "bold")
+
+// --- Table: professional styling ---
+#set table(
+  inset: (x: 8pt, y: 6pt),
+  stroke: (x: none, y: 0.5pt + luma(180)),
+  fill: (x, y) => if y == 0 { luma(235) } else if calc.odd(y) { luma(248) },
+)
+#show table.cell.where(y: 0): set text(weight: "bold", size: 8.5pt)
+#show table: set text(size: 8.5pt)
+
+// --- Heading spacing ---
+#show heading.where(level: 1): it => {
+  pagebreak(weak: true)
+  v(12pt)
+  it
+  v(6pt)
+}
+#show heading.where(level: 2): it => {
+  v(16pt)
+  it
+  v(6pt)
+}
+#show heading.where(level: 3): it => {
+  v(10pt)
+  it
+  v(4pt)
+}
+
+// --- Code block styling ---
+#show raw.where(block: true): it => block(
+  fill: luma(245),
+  inset: 10pt,
+  width: 100%,
+  it
+)

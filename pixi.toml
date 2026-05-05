@@ -1,0 +1,42 @@
+[workspace]
+name = "deep-research"
+channels = ["conda-forge"]
+version = "0.2.0"
+platforms = ["win-64", "linux-64"]
+
+[environments]
+default = { features = ["dev"], solve-group = "default" }
+
+[dependencies]
+fd-find = "*"
+tombi = "*"
+
+[feature.dev.dependencies]
+ruff = ">=0.9,<1"
+mypy = ">=1.15,<2"
+prettier = "*"
+pytest = "*"
+
+[feature.dev.pypi-dependencies]
+deep-research = { path = ".", editable = true }
+
+[feature.dev.tasks]
+lint = { depends-on = ["lint-python", "lint-toml", "typecheck"] }
+lint-python = "ruff check src tests"
+lint-toml = "fd --extension toml --exec tombi check"
+typecheck = "mypy src tests"
+test = "python -m pytest tests -v"
+test-cov = "python -m pytest tests -v --cov=src"
+
+format-python = "ruff format src tests"
+format-toml = "fd --extension toml --exec tombi format"
+format-markdown = "prettier --write --ignore-path .gitignore \"**/*.md\""
+format-yaml = "prettier --write --ignore-path .gitignore \"**/*.yaml\""
+format-json = "prettier --write --ignore-path .gitignore \"**/*.json\""
+format = { depends-on = [
+  "format-python",
+  "format-toml",
+  "format-markdown",
+  "format-yaml",
+  "format-json"
+] }

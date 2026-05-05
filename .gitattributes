@@ -1,0 +1,2 @@
+pixi.lock merge=binary linguist-language=TOML linguist-generated=true
+runtime/pixi.lock merge=binary linguist-language=TOML linguist-generated=true
