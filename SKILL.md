@@ -7,8 +7,9 @@ description: Enterprise-grade research with multi-source synthesis, citation tra
 
 Orchestrate a structured research pipeline using the `deep-research` CLI.
 
-Run CLI commands from the project root:
+Run CLI commands from the `runtime/` directory:
 ```bash
+cd runtime
 pixi run deep-research init "<topic>" [--fast]
 pixi run deep-research plan "方向1" "方向2" ...    # pre-creates dirs + .meta.json
 pixi run deep-research add "新方向"                # add single direction post-plan

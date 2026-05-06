@@ -54,8 +54,16 @@ Copy these files to `skills/deep-research/`:
 
 ```
 src/                    # Python source code
+pyproject.toml          # Package build config (CLI entry point)
 runtime/pixi.toml       # Runtime environment (python, pandoc, typst)
 runtime/pixi.lock
 SKILL.md                # Skill definition
 templates/              # PDF templates
+```
+
+Then run commands from the `runtime/` directory:
+
+```bash
+cd skills/deep-research/runtime
+pixi run deep-research init "topic"
 ```
