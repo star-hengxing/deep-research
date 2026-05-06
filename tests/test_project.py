@@ -188,6 +188,19 @@ class TestResearchProjectAppendix:
         assert "125.3k" in content
         assert "openai.com" in content
 
+    def test_url_with_at_sign(self, project_dir: Path):
+        """URLs containing @ must be wrapped in angle brackets to prevent
+        Pandoc from parsing them as CSL citation keys."""
+        rp = ResearchProject.init("Test", output_dir=project_dir)
+        rp.create_plan(directions=["pricing"])
+        url = "https://medium.com/@user/article-name"
+        meta = {"direction": "pricing", "searched_links": [url]}
+        meta_path = project_dir / "pricing" / ".meta.json"
+        meta_path.write_text(json.dumps(meta), encoding="utf-8")
+        content, _ = rp.generate_appendix()
+        assert content is not None
+        assert f"<{url}>" in content
+
     def test_multiple_agents(self, project_dir: Path):
         rp = ResearchProject.init("Test", output_dir=project_dir)
         rp.create_plan(directions=["dir-1", "dir-2"])

@@ -376,7 +376,7 @@ class ResearchProject:
             if links:
                 lines.append(f"### {e.get('direction', '?')}")
                 for url in links:
-                    lines.append(f"- {url}")
+                    lines.append(f"- <{url}>")
                 lines.append("")
 
         return "\n".join(lines), warnings
