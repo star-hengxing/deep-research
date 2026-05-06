@@ -1,7 +1,7 @@
-// --- Font: use system CJK fonts ---
-#set text(font: ("Microsoft YaHei",), weight: "regular", size: 10.5pt)
-#show heading: set text(font: ("Microsoft YaHei",), weight: "bold")
-#show strong: set text(font: ("Microsoft YaHei",), weight: "bold")
+// --- Font: CJK with cross-platform fallback ---
+#set text(font: ("Microsoft YaHei", "Noto Sans CJK SC", "Noto Sans CJK TC", "DejaVu Sans"), weight: "regular", size: 10.5pt)
+#show heading: set text(font: ("Microsoft YaHei", "Noto Sans CJK SC", "Noto Sans CJK TC", "DejaVu Sans"), weight: "bold")
+#show strong: set text(font: ("Microsoft YaHei", "Noto Sans CJK SC", "Noto Sans CJK TC", "DejaVu Sans"), weight: "bold")
 
 // --- Table: professional styling ---
 #set table(
