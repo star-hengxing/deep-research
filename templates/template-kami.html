@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="$if(lang)$$lang$$else$zh-CN$endif$">
+<head>
+<meta charset="UTF-8">
+<meta name="author" content="$for(author)$$author$$sep$, $endfor$">
+<meta name="generator" content="Deep Research · Kami Style">
+$if(title)$<title>$title$</title>$endif$
+$for(css)$
+<link rel="stylesheet" href="$css$">
+$endfor$
+$for(header-includes)$
+$header-includes$
+$endfor$
+</head>
+<body>
+
+<!-- ══════ Cover ══════ -->
+$if(title)$
+<div class="cover">
+  <div class="cover-content">
+    <div class="cover-accent"></div>
+    <h1 style="page-break-before: avoid; border: none; padding: 0; margin: 0 0 10pt 0; font-size: 28pt; string-set: none;">$title$</h1>
+    $if(subtitle)$
+    <p class="cover-subtitle">$subtitle$</p>
+    $endif$
+    <div class="cover-divider"></div>
+    <div class="cover-meta">
+      $for(author)$<div><span class="label">Author</span>$author$</div>$endfor$
+      $if(date)$<div class="date"><span class="label">Date</span>$date$</div>$endif$
+    </div>
+  </div>
+  <div class="cover-footer">Deep Research · Kami Style</div>
+</div>
+$endif$
+
+<!-- ══════ TOC ══════ -->
+$if(toc)$
+<div class="toc-section">
+  <h1 style="page-break-before: avoid;">目录</h1>
+  <nav id="TOC">$table-of-contents$</nav>
+</div>
+$endif$
+
+<!-- ══════ Body ══════ -->
+<div class="content">
+$body$
+</div>
+
+$for(include-after)$
+$include-after$
+$endfor$
+
+</body>
+</html>

@@ -419,17 +419,17 @@ class ResearchProject:
             )
         return warnings
 
-    def generate_pdf(self, report_path: Path, appendix: str | None = None) -> tuple[bool, Path | str]:
+    def generate_pdf(self, report_path: Path, appendix: str | None = None, *, engine: str = "kami") -> tuple[bool, Path | str]:
         """Generate PDF from a markdown report. Returns (success, output_path)."""
         from deep_research.pdf import generate_pdf
 
-        return generate_pdf(report_path, self.research_dir, appendix)
+        return generate_pdf(report_path, self.research_dir, appendix, engine=engine)
 
-    def generate_html(self, report_path: Path, appendix: str | None = None) -> tuple[bool, Path | str]:
+    def generate_html(self, report_path: Path, appendix: str | None = None, *, engine: str = "kami") -> tuple[bool, Path | str]:
         """Generate HTML from a markdown report. Returns (success, output_path)."""
         from deep_research.pdf import generate_html
 
-        return generate_html(report_path, self.research_dir, appendix)
+        return generate_html(report_path, self.research_dir, appendix, engine=engine)
 
     # --- Status ---
 

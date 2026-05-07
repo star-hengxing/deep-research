@@ -293,6 +293,7 @@ def validate(
 def generate(
     report: str | None = typer.Option(None, "--report", "-r", help="Report file (default: project README.md)"),
     format: str = typer.Option("pdf", "--format", "-f", help="Output format: pdf or html"),
+    engine: str = typer.Option("kami", "--engine", "-e", help="Rendering engine: kami (weasyprint) or typst"),
     dir: Path | None = OUTPUT_DIR_OPTION,
 ):
     """Generate PDF or HTML from a research report."""
@@ -301,6 +302,10 @@ def generate(
 
     if not report_path.exists():
         console.print(f"[red]Report not found: {report_path}[/red]")
+        raise typer.Exit(1)
+
+    if engine not in ("kami", "typst"):
+        console.print(f"[red]Unknown engine: {engine}[/red] (use kami or typst)")
         raise typer.Exit(1)
 
     # Collect appendix and check for warnings
@@ -314,10 +319,12 @@ def generate(
             console.print(f"[yellow]{w}[/yellow]")
         console.print("[yellow]╚══════════════════════════╝[/yellow]")
 
+    console.print(f"[dim]Engine: {engine}[/dim]")
+
     if format == "pdf":
-        success, result = project.generate_pdf(report_path, appendix)
+        success, result = project.generate_pdf(report_path, appendix, engine=engine)
     elif format == "html":
-        success, result = project.generate_html(report_path, appendix)
+        success, result = project.generate_html(report_path, appendix, engine=engine)
     else:
         console.print(f"[red]Unknown format: {format}[/red] (use pdf or html)")
         raise typer.Exit(1)

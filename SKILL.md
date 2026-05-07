@@ -16,7 +16,8 @@ pixi run deep-research add "新方向"                # add single direction pos
 pixi run deep-research agents                     # summary table (use --id N for prompt)
 pixi run deep-research status
 pixi run deep-research validate
-pixi run deep-research generate
+pixi run deep-research generate                    # default: --engine kami (weasyprint)
+pixi run deep-research generate --engine typst      # fallback: pandoc + typst
 ```
 
 ## When to Use
