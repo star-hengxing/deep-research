@@ -109,9 +109,54 @@ templates/
 
 - 新增 `weasyprint` 依赖（`>=67.0,<68`）
 
+## Windows 兼容性
+
+### WeasyPrint GTK DLL 依赖
+
+WeasyPrint 依赖 GTK3 DLL（`gobject-2.0-0.dll`、`pango-1.0-0.dll` 等），已由 conda 打包在 pixi 环境的 `Library/bin/` 下。WeasyPrint 的 cffi 硬编码了 Unix 风格的名称 `libgobject-2.0-0`，直接调用无法找到。**必须通过 `pixi run` 激活环境后才能正确加载**。
+
+### `--stylesheet` 路径问题（已修复）
+
+WeasyPrint 在 Windows 上不接受 `--stylesheet` 参数传递本地路径（URI 解析问题）。解决方案：pandoc 步骤加 `--embed-resources` 将 CSS 内嵌到 HTML 中，weasyprint 步骤不再需要 `--stylesheet`。此修复已集成到 `_generate_pdf_kami()` 中，Linux/Windows 通用。
+
+### `generate` CLI 嵌套锁冲突
+
+`pixi run deep-research generate` 内部调用 `pixi run pandoc`，触发环境自更新时外层 `pixi run` 已锁住 `deep-research.exe`，形成嵌套锁冲突（`os error 5: 拒绝访问`）。`init`/`plan`/`add`/`agents`/`status` 等无子进程调用的命令不受影响。
+
+绕过方案——直接用 Python API：
+
+```bash
+cd runtime
+pixi run python -c "
+import sys; sys.path.insert(0, '../src')
+from deep_research.project import ResearchProject
+from pathlib import Path
+proj = ResearchProject(Path('../docs/research/<project>'))
+report = Path('../docs/research/<project>/README.md')
+appendix, _ = proj.generate_appendix()
+proj.generate_pdf(report, appendix, engine='kami')
+"
+```
+
+或手动两步走：
+
+```bash
+cd runtime
+pixi run pandoc ../docs/research/<project>/README.md \
+  -o .kami.html \
+  --template ../templates/template-kami.html \
+  --toc --toc-depth=3 --standalone --embed-resources \
+  -c ../templates/kami.css \
+  -V "title=<project>" -V "date=$(date +%F)" -V "author=Deep Research"
+
+pixi run weasyprint .kami.html ../docs/research/<project>/output/report.pdf
+rm -f .kami.html
+```
+
 ## 已知限制
 
 1. **字体依赖**：Kami 管线需要系统安装 `Noto Serif CJK SC` 和 `Bitstream Charter`。Linux 上通常需要 `fonts-noto-cjk` 包。
 2. **WeasyPrint 不支持**：`min-height: 100vh`、`overflow-x: auto`、部分 Flexbox 特性。封面布局用绝对定位代替。
 3. **TOC 页码**：依赖 WeasyPrint 的 `target-counter(attr(href), page)` CSS 函数，需要 `<nav id="TOC">` 包裹。
 4. **Lua 过滤器**：`pagebreak.lua`（`---` → `#pagebreak()`）仅在 Typst 管线中生效，Kami 管线中 `---` 渲染为 `<hr>` 细线。
+5. **Windows 嵌套锁**：`pixi run deep-research generate` 在 Windows 上不可用，需手动两步走或用 Python API 调用。

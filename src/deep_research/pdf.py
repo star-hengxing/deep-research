@@ -44,6 +44,22 @@ def _find_pixi() -> str:
     raise FileNotFoundError("pixi not found. Install pixi or run pandoc manually.")
 
 
+def _resolve_cmd(tool: str) -> list[str]:
+    """Find the best way to invoke a tool (pandoc, weasyprint, etc.).
+
+    If already inside a pixi environment (e.g. via `pixi run deep-research`),
+    the tool is directly on PATH — call it without pixi to avoid nested locking
+    on Windows. Falls back to `pixi run <tool>` when outside the environment.
+    """
+    try:
+        subprocess.run([tool, "--version"], capture_output=True, check=True)
+        return [tool]
+    except (subprocess.SubprocessError, FileNotFoundError):
+        pass
+    pixi = _find_pixi()
+    return [pixi, "run", tool]
+
+
 def _kami_available(templates: Path) -> bool:
     return (templates / "template-kami.html").exists() and (templates / "kami.css").exists()
 
@@ -93,35 +109,37 @@ def _generate_pdf_kami(
     tpl = templates / "template-kami.html"
     css = templates / "kami.css"
 
-    # Step 1: Markdown → HTML via pandoc
+    # Step 1: Markdown → self-contained HTML via pandoc
+    # --embed-resources inlines the CSS so weasyprint needs no --stylesheet
+    # (fixes Windows path URI resolution issues with --stylesheet)
     pandoc_args = [str(report_path), "-o", str(output_html)]
     if appendix_path:
         pandoc_args.insert(1, str(appendix_path))
     pandoc_args.extend([
         "--template", str(tpl),
-        "--toc", "--toc-depth=3", "--standalone",
-        "--css", str(css),
+        "--toc", "--toc-depth=3", "--standalone", "--embed-resources",
+        "-c", str(css),
         "-V", f"title={report_path.parent.name}",
         "-V", f"date={today}",
         "-V", "author=Deep Research",
     ])
 
     try:
-        pixi = _find_pixi()
+        pandoc_cmd = _resolve_cmd("pandoc")
         cwd = str(skill) if skill else None
 
         result = subprocess.run(
-            [pixi, "run", "pandoc"] + pandoc_args,
+            pandoc_cmd + pandoc_args,
             capture_output=True, text=True, errors="replace",
             timeout=120, cwd=cwd,
         )
         if result.returncode != 0:
             return False, f"Pandoc HTML generation failed:\n{result.stderr}"
 
-        # Step 2: HTML → PDF via WeasyPrint
+        # Step 2: HTML → PDF via WeasyPrint (no --stylesheet needed, CSS is inlined)
+        weasy_cmd = _resolve_cmd("weasyprint")
         result = subprocess.run(
-            [pixi, "run", "weasyprint", str(output_html), str(output_pdf),
-             "--stylesheet", str(css)],
+            weasy_cmd + [str(output_html), str(output_pdf)],
             capture_output=True, text=True, errors="replace",
             timeout=180, cwd=cwd,
         )
@@ -196,13 +214,11 @@ def _generate_pdf_typst(report_path: Path, output_root: Path, appendix: str | No
     )
 
     try:
-        pixi = _find_pixi()
-        cmd = [pixi, "run", "pandoc"] + pandoc_args
-
+        pandoc_cmd = _resolve_cmd("pandoc")
         cwd = str(skill) if skill else None
 
         result = subprocess.run(
-            cmd,
+            pandoc_cmd + pandoc_args,
             capture_output=True,
             text=True,
             errors="replace",
@@ -273,11 +289,10 @@ def generate_html(
         ])
 
     try:
-        pixi = _find_pixi()
-        cmd = [pixi, "run", "pandoc"] + pandoc_args
+        pandoc_cmd = _resolve_cmd("pandoc")
 
         result = subprocess.run(
-            cmd,
+            pandoc_cmd + pandoc_args,
             capture_output=True,
             text=True,
             errors="replace",
