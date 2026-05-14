@@ -250,7 +250,7 @@ def status(
 @app.command()
 def validate(
     report: str | None = typer.Argument(None, help="Path to report (default: project README.md)"),
-    strict: bool = typer.Option(False, "--strict", "-s", help="Strict mode"),
+    strict: bool = typer.Option(False, "--strict", "-s", help="Treat warnings as failures"),
     dir: Path | None = OUTPUT_DIR_OPTION,
 ):
     """Run quality checks on a research report."""
@@ -260,32 +260,44 @@ def validate(
         console.print(f"[red]Report not found: {report_path}[/red]")
         raise typer.Exit(1)
 
-    console.print(f"[bold]Checking URLs in:[/bold] {report_path}\n")
+    console.print(f"[bold]Validating:[/bold] {report_path}\n")
+    failed = False
 
-    # Phase 1: meta integrity — catch missing .meta.json before it's too late
+    # Meta integrity
     meta_errors, meta_warnings = project.check_meta_integrity()
     if meta_errors:
         console.print("[bold red]Missing .meta.json — fix before generate:[/bold red]")
         for e in meta_errors:
             console.print(f"[red]{e}[/red]")
+        failed = True
     if meta_warnings:
         console.print("[yellow]Meta warnings:[/yellow]")
         for w in meta_warnings:
             console.print(f"[yellow]{w}[/yellow]")
 
+    # Quality gate (layers 1-2)
+    from deep_research.quality import run_quality_gate
+
+    gate_passed, gate_output = run_quality_gate(report_path, project.research_dir)
+    console.print(gate_output)
+    if not gate_passed:
+        failed = True
+    if strict and "⚠" in gate_output:
+        failed = True
+
+    # URL check (layer 0)
     from deep_research.quality import check_report_urls
 
-    passed, output = check_report_urls(report_path)
+    console.print()
+    url_passed, url_output = check_report_urls(report_path)
+    console.print(url_output)
+    if not url_passed:
+        failed = True
 
-    console.print(output)
-
-    if passed and not meta_errors:
+    if not failed:
         console.print("\n[bold green]All checks passed![/bold green]")
     else:
-        if meta_errors:
-            console.print("\n[bold red]Meta integrity check failed. See errors above.[/bold red]")
-        if not passed:
-            console.print("\n[bold red]Some URLs are inaccessible. Review and fix before delivery.[/bold red]")
+        console.print("\n[bold red]Validation failed. See issues above.[/bold red]")
         raise typer.Exit(1)
 
 
