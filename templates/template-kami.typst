@@ -1,0 +1,311 @@
+// template-kami.typst — Full pandoc template with Kami-inspired cover & styling
+// Usage: pandoc ... --template template-kami.typst
+
+// ── Pandoc boilerplate ──
+#let horizontalrule = line(start: (25%,0%), end: (75%,0%))
+
+#show terms.item: it => block(breakable: false)[
+  #text(weight: "bold")[#it.term]
+  #block(inset: (left: 1.5em, top: -0.4em))[#it.description]
+]
+
+#show figure.where(kind: table): set figure.caption(position: top)
+#show figure.where(kind: image): set figure.caption(position: bottom)
+
+$if(highlighting-definitions)$
+$highlighting-definitions$
+$endif$
+
+// ── Color tokens (Kami palette) ──
+#let parchment   = rgb("#f5f4ed")
+#let ivory       = rgb("#faf9f5")
+#let warm-sand   = rgb("#e8e6dc")
+#let near-black  = rgb("#141413")
+#let dark-warm   = rgb("#3d3d3a")
+#let olive       = rgb("#504e49")
+#let stone       = rgb("#6b6a64")
+#let brand       = rgb("#1B365D")
+#let brand-light = rgb("#2D5A8A")
+#let border-soft = rgb("#e5e3d8")
+#let tag-bg      = rgb("#E4ECF5")
+
+// ── conf function (replaces pandoc default) ──
+#let conf(
+  title: none,
+  subtitle: none,
+  authors: (),
+  keywords: (),
+  date: none,
+  abstract: none,
+  abstract-title: none,
+  thanks: none,
+  lang: "zh",
+  region: "CN",
+  margin: (:),
+  paper: "a4",
+  font: (),
+  fontsize: 10.5pt,
+  mathfont: (),
+  codefont: (),
+  linestretch: auto,
+  sectionnumbering: none,
+  pagenumbering: none,
+  linkcolor: auto,
+  citecolor: auto,
+  filecolor: auto,
+  cols: 1,
+  doc,
+) = {
+
+  // ── Page setup ──
+  set page(
+    paper: paper,
+    margin: (top: 22mm, bottom: 24mm, left: 22mm, right: 22mm),
+    fill: parchment,
+    header: context {
+      if counter(page).get().first() > 1 {
+        set text(font: "Noto Serif CJK SC", size: 8pt, fill: stone)
+        h(1fr)
+      }
+    },
+    footer: context {
+      set text(font: "Noto Serif CJK SC", size: 8.5pt, fill: stone)
+      h(1fr)
+      [— #counter(page).display("1") —]
+      h(1fr)
+    },
+  )
+
+  // ── Typography ──
+  set text(
+    font: ("Noto Serif CJK SC", "Noto Sans CJK SC", "DejaVu Serif"),
+    weight: "regular",
+    size: fontsize,
+    fill: near-black,
+    lang: lang,
+  )
+  set par(leading: 0.8em, first-line-indent: 0em, spacing: 0.65em, justify: false)
+
+  show heading: set text(
+    font: ("Noto Serif CJK SC", "Noto Sans CJK SC", "DejaVu Serif"),
+    weight: "bold",
+    fill: near-black,
+  )
+  show strong: set text(
+    font: ("Noto Serif CJK SC", "Noto Sans CJK SC", "DejaVu Serif"),
+    weight: "bold",
+  )
+
+  if sectionnumbering != none {
+    set heading(numbering: sectionnumbering)
+  }
+
+  // ── Heading styles ──
+  show heading.where(level: 1): it => {
+    pagebreak(weak: true)
+    v(16pt)
+    block(width: 100%)[
+      #set text(size: 20pt, weight: "bold", fill: near-black)
+      #block(
+        inset: (left: 10pt),
+        stroke: (left: 3pt + brand),
+      )[#it.body]
+    ]
+    v(10pt)
+  }
+
+  show heading.where(level: 2): it => {
+    v(20pt)
+    block(width: 100%)[
+      #set text(size: 14pt, weight: "bold", fill: near-black)
+      #it.body
+      #v(2pt)
+      #line(length: 100%, stroke: 0.4pt + border-soft)
+    ]
+    v(8pt)
+  }
+
+  show heading.where(level: 3): it => {
+    v(14pt)
+    block[
+      #set text(size: 11.5pt, weight: "bold", fill: dark-warm)
+      #it.body
+    ]
+    v(5pt)
+  }
+
+  show heading.where(level: 4): it => {
+    v(10pt)
+    block[
+      #set text(size: 10.5pt, weight: "bold", fill: olive)
+      #it.body
+    ]
+    v(4pt)
+  }
+
+  // ── Table ──
+  set table(
+    inset: (x: 8pt, y: 6pt),
+    stroke: (x: none, y: 0.4pt + border-soft),
+    fill: (x, y) => if y == 0 { tag-bg } else if calc.odd(y) { ivory },
+  )
+  show table.cell.where(y: 0): set text(weight: "bold", size: 8.5pt, fill: brand)
+  show table: set text(size: 8.5pt, fill: dark-warm)
+
+  // ── Code ──
+  show raw.where(block: true): it => block(
+    fill: ivory,
+    stroke: 0.4pt + border-soft,
+    radius: 4pt,
+    inset: 10pt,
+    width: 100%,
+    it,
+  )
+  show raw.where(block: false): it => box(
+    fill: tag-bg,
+    inset: (x: 3pt, y: 1.5pt),
+    radius: 2pt,
+    it,
+  )
+
+  // ── Blockquote ──
+  show quote.where(block: true): it => block(
+    inset: (left: 12pt, top: 4pt, bottom: 4pt),
+    stroke: (left: 2pt + brand),
+  )[
+    #set text(fill: olive, size: 10pt)
+    #it.body
+  ]
+
+  // ── Links ──
+  show link: it => {
+    set text(fill: brand-light)
+    underline(it)
+  }
+
+  // ── Lists ──
+  set list(marker: text(fill: brand)[—], indent: 0.6em, body-indent: 0.5em)
+  set enum(indent: 0.6em, body-indent: 0.5em)
+
+  // ── Outline (TOC) styling ──
+  show outline.entry: it => {
+    set text(fill: dark-warm)
+    it
+  }
+
+  // ══════════ Cover Page ══════════
+  {
+    set page(footer: none, header: none)
+
+    v(1fr)
+
+    // Brand accent line
+    line(length: 60pt, stroke: 3pt + brand)
+    v(16pt)
+
+    // Title
+    if title != none {
+      text(size: 28pt, weight: "bold", fill: near-black, font: ("Noto Serif CJK SC", "DejaVu Serif"))[#title]
+    }
+
+    v(12pt)
+
+    if subtitle != none {
+      text(size: 14pt, fill: olive)[#subtitle]
+      v(8pt)
+    }
+
+    // Divider
+    v(20pt)
+    line(length: 100%, stroke: 0.5pt + border-soft)
+    v(16pt)
+
+    // Author & date
+    if authors.len() > 0 {
+      for author in authors {
+        text(size: 11pt, fill: dark-warm)[#author.name]
+        linebreak()
+      }
+      v(8pt)
+    }
+    if date != none {
+      text(size: 10.5pt, fill: stone)[#date]
+    }
+
+    v(2fr)
+
+    // Footer mark
+    align(right)[
+      #text(size: 9pt, fill: stone, font: ("Noto Serif CJK SC",))[Deep Research · Kami Style]
+    ]
+  }
+
+  pagebreak()
+
+  // ══════════ Document body ══════════
+  if cols > 1 {
+    columns(cols, doc)
+  } else {
+    doc
+  }
+}
+
+#set smartquote(enabled: false)
+
+$for(header-includes)$
+$header-includes$
+
+$endfor$
+#show: doc => conf(
+$if(title)$
+  title: [$title$],
+$endif$
+$if(subtitle)$
+  subtitle: [$subtitle$],
+$endif$
+$if(author)$
+  authors: (
+$for(author)$
+$if(author.name)$
+    ( name: [$author.name$],
+      affiliation: [$author.affiliation$],
+      email: [$author.email$] ),
+$else$
+    ( name: [$author$],
+      affiliation: "",
+      email: "" ),
+$endif$
+$endfor$
+    ),
+$endif$
+$if(date)$
+  date: [$date$],
+$endif$
+$if(lang)$
+  lang: "$lang$",
+$endif$
+$if(section-numbering)$
+  sectionnumbering: "$section-numbering$",
+$endif$
+  pagenumbering: $if(page-numbering)$"$page-numbering$"$else$none$endif$,
+  cols: $if(columns)$$columns$$else$1$endif$,
+  doc,
+)
+
+$for(include-before)$
+$include-before$
+
+$endfor$
+$if(toc)$
+#outline(
+  title: [目录],
+  depth: $toc-depth$
+);
+$endif$
+
+$body$
+
+$for(include-after)$
+
+$include-after$
+$endfor$
